@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  font-weight: 500;
+  @apply font-body;
+}
+
+html,
+body {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  @apply text-surface-on bg-surface-bright;
+}
+
+/**
+[]=============================[]
+          Headlines
+[]=============================[]
+*/
+h1 {
+  @apply text-display-lg font-headline;
+}
+h2 {
+  @apply text-display font-headline;
+}
+h3 {
+  @apply text-display-sm font-headline;
+}
+h4 {
+  @apply text-headline-lg font-headline;
+}
+h5 {
+  @apply text-headline font-headline;
+}
+h6 {
+  @apply text-headline-sm font-headline;
+}
+
+/**
+[]=============================[]
+          Button
+[]=============================[]
+*/
+button {
+  @apply font-headline;
+}
