@@ -6,5 +6,6 @@ export enum ApiErrorCode {
   ACCOUNT_DISCORD_EXISTS = "AccountWithDiscordExists",
   UNKNOWN_SIGNUP_METHOD = "UnknownSignupMethod",
   INVALID_GRANT_CODE = "InvalidGrantCode",
-  DISCORD_UNEXPECTED_ERROR = "DiscordUnexpectedError"
+  DISCORD_UNEXPECTED_ERROR = "DiscordUnexpectedError",
+  DISCORD_INVALID_GRANT = "DiscordInvalidGrant",
 }

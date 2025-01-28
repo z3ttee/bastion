@@ -1,22 +1,38 @@
+import { TypeOrmModuleOptions } from "@nestjs/typeorm";
+import { AuthenticationProviderModuleConfig } from "./providers/types";
+
+export type ApplicationConfig = Awaited<ReturnType<typeof loadConfig>>;
+
 export async function loadConfig() {
   return {
     environment: {
-      env: process.env.ENV ?? "development"
+      env: process.env.ENV ?? "development",
+      port: parseInt(`${process.env.PORT ?? 3001}`),
     },
     database: {
       host: process.env.DB_HOST ?? "localhost",
-      port: process.env.DB_PORT ?? 3306,
-      prefix: process.env.DB_PREFIX ?? "fp_",
+      port: parseInt(`${process.env.DB_PORT ?? 3306}`),
+      entityPrefix: process.env.DB_PREFIX ?? "fp_",
       username: process.env.DB_USER ?? "root",
       password: process.env.DB_PASS ?? "root",
-      name: process.env.DB_NAME ?? "furport"
-    },
+      database: process.env.DB_NAME ?? "furport",
+      type: (process.env.DB_TYPE ?? "mariadb") as any,
+    } satisfies TypeOrmModuleOptions,
     storage: {
       host: process.env.S3_HOST ?? "localhost",
       port: parseInt(`${process.env.S3_PORT ?? 9000}`),
       ssl: process.env.S3_SSL === "true",
       accessKey: process.env.S3_ACCESS_KEY ?? "",
-      secretKey: process.env.S3_SECRET_KEY ?? ""
-    }
+      secretKey: process.env.S3_SECRET_KEY ?? "",
+    },
+    authProviders: {
+      discord: {
+        enabled: process.env.DISCORD_ENABLED === "true",
+        client_id: process.env.DISCORD_CLIENT_ID ?? "",
+        client_secret: process.env.DISCORD_CLIENT_SECRET ?? "",
+        redirect_url: process.env.DISCORD_REDIRECT_URL ?? "",
+        endpoint: process.env.DISCORD_ENDPOINT ?? "",
+      },
+    } satisfies AuthenticationProviderModuleConfig,
   };
 }
