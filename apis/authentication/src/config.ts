@@ -1,5 +1,5 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { AuthenticationProviderModuleConfig } from "./providers/types";
+import { AuthenticationProviderModuleConfig } from "./authenticate/providers/types";
 
 export type ApplicationConfig = Awaited<ReturnType<typeof loadConfig>>;
 
@@ -19,11 +19,12 @@ export async function loadConfig() {
       type: (process.env.DB_TYPE ?? "mariadb") as any,
     } satisfies TypeOrmModuleOptions,
     storage: {
-      host: process.env.S3_HOST ?? "localhost",
-      port: parseInt(`${process.env.S3_PORT ?? 9000}`),
-      ssl: process.env.S3_SSL === "true",
-      accessKey: process.env.S3_ACCESS_KEY ?? "",
-      secretKey: process.env.S3_SECRET_KEY ?? "",
+      s3: {
+        enabled: process.env.S3_ENABLED ?? false,
+        endpoint: process.env.S3_ENDPOINT ?? "",
+        accessKey: process.env.S3_ACCESS_KEY ?? "",
+        secretKey: process.env.S3_SECRET_KEY ?? "",
+      },
     },
     authProviders: {
       discord: {

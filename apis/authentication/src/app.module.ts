@@ -10,9 +10,7 @@ import { APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { AccountModule } from "./account/account.module";
 import { AvatarModule } from "./avatar/avatar.module";
 import { AuthenticateModule } from "./authenticate/authenticate.module";
-import { AuthenticationProviderModule } from "./providers/providers.module";
-import { AuthenticationProviderModuleConfig } from "./providers/types";
-import { DiscordConfig } from "./providers/discord/types";
+import { S3Module } from "@repo/s3";
 
 @Module({
   imports: [
@@ -20,6 +18,20 @@ import { DiscordConfig } from "./providers/discord/types";
       isGlobal: true,
       envFilePath: [".env.dev", ".env"],
       load: [loadConfig],
+    }),
+    S3Module.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        enabled: config.get("storage.s3.enabled", false),
+        client: {
+          region: config.get("storage.s3.region", undefined),
+          endpoint: config.get("storage.s3.endpoint", undefined),
+          credentials: {
+            accessKeyId: config.get("storage.s3.accessKey"),
+            secretAccessKey: config.get("storage.s3.secretKey"),
+          },
+        },
+      }),
     }),
     // MinIOModule.forRootAsync({
     //   inject: [ConfigService],
@@ -41,12 +53,6 @@ import { DiscordConfig } from "./providers/discord/types";
           autoLoadEntities: true,
           synchronize: !isProduction,
         };
-      },
-    }),
-    AuthenticationProviderModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        return config.get("authProviders");
       },
     }),
     AvatarModule,

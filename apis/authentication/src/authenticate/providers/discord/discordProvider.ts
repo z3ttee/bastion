@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Injectable,
   InternalServerErrorException,
   Logger,
 } from "@nestjs/common";
@@ -11,32 +12,48 @@ import {
   DiscordResponse,
   DiscordUser,
 } from "./responses";
-import { ApiErrorCode } from "../../errorCodes";
-import { DiscordConfig, DiscordCredentials } from "./types";
+import { DiscordCredentials } from "./types";
+import { Repository } from "typeorm";
+import { Account } from "../../../account/entities/account.entity";
+import { ApiErrorCode } from "../../../errorCodes";
+import { AuthenticationProviderModuleConfig } from "../types";
+import { InjectRepository } from "@nestjs/typeorm";
 
+@Injectable()
 export class DiscordProvider extends CommonAuthenticationProvider<DiscordCredentials> {
   private readonly _logger = new Logger(DiscordProvider.name);
 
-  constructor(private readonly _config: DiscordConfig) {
-    super("discord");
+  constructor(
+    private readonly _config: AuthenticationProviderModuleConfig,
+    @InjectRepository(Account)
+    private readonly _accountRepo: Repository<Account>
+  ) {
+    super();
   }
 
-  public async authenticateWithCredentials(
-    credentials: DiscordCredentials
-  ): Promise<unknown> {
+  public async authenticate(credentials: DiscordCredentials): Promise<Account> {
+    if (!this._config.discord?.enabled)
+      throw new Error("Discord authentication is not enabled");
+
     const accessToken = await this._exchangeAccessToken(credentials.code);
     const discordUser = await this._loadProfile(accessToken);
-    return discordUser;
+    return this._findAccount(discordUser);
+  }
+
+  private async _findAccount(discordUser: DiscordUser): Promise<Account> {
+    return this._accountRepo.findOne({
+      where: {},
+    });
   }
 
   /** Exchange grant code to get an access token */
   private async _exchangeAccessToken(grantCode: string): Promise<string> {
     return this._httpPost<DiscordAccessTokenResponse>(
-      `${this._config.endpoint}/oauth2/token`,
+      `${this._config.discord?.endpoint}/oauth2/token`,
       {
         grant_type: "authorization_code",
         code: grantCode,
-        redirect_uri: this._config.redirect_url,
+        redirect_uri: this._config.discord?.redirect_url,
       }
     ).then((res) => {
       return res.access_token;
@@ -45,7 +62,7 @@ export class DiscordProvider extends CommonAuthenticationProvider<DiscordCredent
 
   /** Load profile associated with access token */
   private async _loadProfile(access_token: string): Promise<DiscordUser> {
-    return fetch(`${this._config.endpoint}/oauth2/@me`, {
+    return fetch(`${this._config.discord?.endpoint}/oauth2/@me`, {
       headers: {
         Authorization: `Bearer ${access_token}`,
       },
@@ -80,7 +97,11 @@ export class DiscordProvider extends CommonAuthenticationProvider<DiscordCredent
         "Content-Type": "application/x-www-form-urlencoded",
         Authorization:
           "Basic " +
-          btoa(this._config.client_id + ":" + this._config.client_secret),
+          btoa(
+            this._config.discord?.client_id +
+              ":" +
+              this._config.discord?.client_secret
+          ),
       },
     })
       .then<DiscordResponse<T>>((res) => res.json() as any)
