@@ -1,11 +1,20 @@
 import { Exclude } from "class-transformer";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { AccountCredentials } from "./credentials.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { Avatar } from "../../avatar/entities/avatar.entity";
+import { LinkedAccount } from "./linked-account.entity";
 
 export enum AccountState {
   ACTIVE = "active",
-  DISABLED = "disabled"
+  DISABLED = "disabled",
 }
 
 @Entity()
@@ -19,7 +28,12 @@ export class Account {
   public displayName: string;
 
   /** Id of the avatar file */
-  @Column({ nullable: false, type: "enum", enum: AccountState, default: AccountState.ACTIVE })
+  @Column({
+    nullable: false,
+    type: "enum",
+    enum: AccountState,
+    default: AccountState.ACTIVE,
+  })
   public state?: AccountState;
 
   /** E-Mail used to login */
@@ -36,15 +50,22 @@ export class Account {
   public readonly createdAt: Date;
 
   /** Get credentials for account */
-  @OneToOne(() => Avatar, { nullable: true, cascade: ["insert", "update"], onDelete: "SET NULL" })
+  @OneToOne(() => Avatar, {
+    nullable: true,
+    cascade: ["insert", "update"],
+    onDelete: "SET NULL",
+  })
   @JoinColumn()
   public avatar?: Avatar;
 
   /** Get credentials for account */
-  @OneToOne(() => AccountCredentials, { nullable: false, cascade: ["insert"], onDelete: "CASCADE" })
-  @JoinColumn()
+  @OneToMany(() => LinkedAccount, (linked) => linked.account, {
+    nullable: false,
+    cascade: ["insert", "update"],
+    onDelete: "SET NULL",
+  })
   @Exclude()
-  public credentials?: AccountCredentials;
+  public linkedAccounts?: LinkedAccount[];
 
   /** Get account that this account was referred by */
   @ManyToOne(() => Account, { nullable: true })

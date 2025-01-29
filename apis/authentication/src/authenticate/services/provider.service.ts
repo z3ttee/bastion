@@ -20,11 +20,13 @@ export class AuthenticationProviderService {
   ) {}
 
   /** Get registered provider */
-  public get(provider: AuthenticationProvider): AuthProviderReturn {
+  public get<T extends AuthenticationProvider = AuthenticationProvider>(
+    provider: T
+  ): AuthProviderReturn<T> {
     if (provider === "discord") {
-      return this._discord;
+      return this._discord as any;
     } else if (provider === "password") {
-      return this._password;
+      return this._password as any;
     }
 
     throw new Error(`Provider ${provider} not found`);

@@ -18,6 +18,11 @@ import { Account } from "../../../account/entities/account.entity";
 import { ApiErrorCode } from "../../../errorCodes";
 import { AuthenticationProviderModuleConfig } from "../types";
 import { InjectRepository } from "@nestjs/typeorm";
+import {
+  LinkedAccountType,
+  LinkedDiscordAccount,
+} from "../../../account/entities/linked-account.entity";
+import { AvatarSourceType } from "../../../avatar/entities/avatar.entity";
 
 @Injectable()
 export class DiscordProvider extends CommonAuthenticationProvider<DiscordCredentials> {
@@ -37,13 +42,51 @@ export class DiscordProvider extends CommonAuthenticationProvider<DiscordCredent
 
     const accessToken = await this._exchangeAccessToken(credentials.code);
     const discordUser = await this._loadProfile(accessToken);
-    return this._findAccount(discordUser);
+    return this._findOrCreateAccount(discordUser);
   }
 
-  private async _findAccount(discordUser: DiscordUser): Promise<Account> {
-    return this._accountRepo.findOne({
-      where: {},
-    });
+  private async _findOrCreateAccount(
+    discordUser: DiscordUser
+  ): Promise<Account> {
+    return this._accountRepo
+      .findOne({
+        where: {
+          linkedAccounts: {
+            provider: LinkedAccountType.DISCORD,
+            discordId: discordUser.id,
+          } as LinkedDiscordAccount,
+        },
+        relations: {
+          avatar: true,
+          referredBy: true,
+          linkedAccounts: true,
+        },
+      })
+      .then((account) => {
+        if (account) return account;
+        return this._createAccount(discordUser);
+      });
+  }
+
+  /** Create account by provided discord user data */
+  private async _createAccount(discordUser: DiscordUser): Promise<Account> {
+    return this._accountRepo.save(
+      this._accountRepo.create({
+        email: discordUser.email,
+        isEmailVerified: false,
+        displayName: discordUser.username,
+        linkedAccounts: [
+          {
+            provider: LinkedAccountType.DISCORD,
+            discordId: discordUser.id,
+          } as LinkedDiscordAccount,
+        ],
+        avatar: {
+          source: AvatarSourceType.DISCORD,
+          identifier: discordUser.avatar,
+        },
+      })
+    );
   }
 
   /** Exchange grant code to get an access token */

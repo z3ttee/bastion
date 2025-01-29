@@ -2,18 +2,22 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Account } from "./entities/account.entity";
 import { AccountService } from "./services/account.service";
-import { MulterModule } from "@nestjs/platform-express";
 import {
-  AccountCredentials,
-  AccountDiscordCredentials,
-  AccountPasswordCredentials
-} from "./entities/credentials.entity";
+  LinkedAccount,
+  LinkedDiscordAccount,
+  LinkedPasswordAccount,
+} from "./entities/linked-account.entity";
 
 @Module({
   providers: [AccountService],
   imports: [
-    TypeOrmModule.forFeature([Account, AccountCredentials, AccountPasswordCredentials, AccountDiscordCredentials])
+    TypeOrmModule.forFeature([
+      Account,
+      LinkedAccount,
+      LinkedDiscordAccount,
+      LinkedPasswordAccount,
+    ]),
   ],
-  exports: [AccountService]
+  exports: [AccountService],
 })
 export class AccountModule {}
