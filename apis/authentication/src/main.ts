@@ -1,5 +1,9 @@
 import { HttpAdapterHost, NestFactory } from "@nestjs/core";
-import { ValidationPipe, VERSION_NEUTRAL, VersioningType } from "@nestjs/common";
+import {
+  ValidationPipe,
+  VERSION_NEUTRAL,
+  VersioningType,
+} from "@nestjs/common";
 import { AppModule } from "./app.module";
 import { ResponseTransformInterceptor } from "./interceptors/response.interceptor";
 import { CatchAllExceptionFilter } from "./interceptors/exception.filter";
@@ -9,7 +13,7 @@ export async function bootstrap() {
 
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: VERSION_NEUTRAL
+    defaultVersion: VERSION_NEUTRAL,
   });
 
   // Enable global request validation
@@ -17,14 +21,11 @@ export async function bootstrap() {
     new ValidationPipe({
       transform: true,
       whitelist: true,
-      forbidNonWhitelisted: true
+      forbidNonWhitelisted: true,
     })
   );
 
   app.useGlobalFilters(new CatchAllExceptionFilter(app.get(HttpAdapterHost)));
-
-  // Transform responses globally
-  app.useGlobalInterceptors(new ResponseTransformInterceptor<unknown>());
 
   await app.listen(process.env.PORT ?? 3001);
 }

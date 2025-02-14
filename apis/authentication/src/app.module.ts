@@ -11,6 +11,7 @@ import { AccountModule } from "./account/account.module";
 import { AvatarModule } from "./avatar/avatar.module";
 import { AuthenticateModule } from "./authenticate/authenticate.module";
 import { S3Module } from "@repo/s3";
+import { DiscoveryModule } from "./discovery/discovery.module";
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { S3Module } from "@repo/s3";
         };
       },
     }),
+    DiscoveryModule,
     AvatarModule,
     AccountModule,
     AuthenticateModule,
